@@ -53,8 +53,8 @@ from arcgis.raster import Raster
 from arcpy.sa import Raster as ARCPY_Raster
 
 # Set the workspace 
-output_directory = arcpy.GetParameterAsText(0)
-#output_directory = arcpy.env.workspace = "z:\MP\Scratch" #used to test script
+#output_directory = arcpy.GetParameterAsText(0)
+output_directory = arcpy.env.workspace = "z:\MP\Scratch" #used to test script
 arcpy.env.overwriteOutput = True
 
 
@@ -62,13 +62,14 @@ arcpy.env.overwriteOutput = True
 
 
 # Define LAS data and LAS dataset paths 
-las_folder = arcpy.GetParameterAsText(1) 
-las_dataset = arcpy.GetParameterAsText(2) 
+#las_folder = arcpy.GetParameterAsText(1) 
+#as_dataset = arcpy.GetParameterAsText(2) 
+las_folder = "z://MP//DATA//Lidar//nc2019_dunex_Job1104540" #- used to test script
+las_dataset = "z://MP//DATA//Lidar//nc2019_dunex_Job1104540//nc2019_dunex_Job1104540.lasd"
+
+arcpy.AddMessage(f"LAS Dataset: {las_dataset}")
 arcpy.AddMessage(f"Output directory: {output_directory}")
 arcpy.AddMessage(f"LAS Folder: {las_folder}")
-arcpy.AddMessage(f"LAS Dataset: {las_dataset}")
-#las_folder = "z://MP//DATA//Lidar//nc2019_dunex_Job1104540" - used to test script
-#las_dataset = "z://MP//DATA//Lidar//nc2019_dunex_Job1104540//nc2019_dunex_Job1104540.lasd"
 
 # Create a LAS Dataset using Create LAS Dataset Tool 
 arcpy.management.CreateLasDataset(las_folder, las_dataset)
@@ -91,12 +92,12 @@ arcpy.conversion.LasDatasetToRaster(las_dataset, ground_DEM_output,
                                     'FLOAT', 
                                     'CELLSIZE', 1, 1)
 arcpy.AddMessage(f"LAS Dataset successfully created.")
-arcpy.AddError(f'LAS Dataset creation failed.')
+#arcpy.AddError(f'LAS Dataset creation failed.')
 
 # In[5]:
 
 
-DEM_1m = Raster(ground_DEM_output)
+DEM_1m = ARCPY_Raster(ground_DEM_output)
 
 
 # ### 2. Tidal Variability Surface Using Vertical Datum Tool
@@ -137,8 +138,8 @@ arcpy.AddMessage(f"Tidal raster successfully loaded")
 
 
 # Get the bounding box of the ground DEM to clip to this extent 
-desc = arcpy.Describe(DEM_1m)
-extent = desc.extent
+desc = arcpy.da.Describe(DEM_1m)
+extent = desc["extent"]
 xmin = extent.XMin
 xmax = extent.XMax
 ymin = extent.YMin
@@ -189,7 +190,7 @@ arcpy.management.ProjectRaster(tidal_raster_sa,
                                tidal_projected_output,
                                UTM_NAD83)
 
-arcpy.AddMessage(f"Tidal raster successfully projected into {UTM_NAD83}")
+arcpy.AddMessage(f"Tidal raster successfully projected into {UTM_NAD83.projectionName}")
 # In[66]:
 
 
@@ -352,11 +353,12 @@ def process_inundation(SLR_value, DEM_1m, output_directory) :
     con_depth_output = os.path.join(output_directory, f'SLR_Inundation_{SLR_in_feet}.tif')
     con_depth.save(con_depth_output)
 
-    print(f"Processed SLR = {SLR_value}m, saved as {con_depth_output}")
+    arcpy.AddMessage(f"Processed SLR = {SLR_value}m, saved as {con_depth_output}")
 
 # Iterate through each SLR value (1ft, 2ft, 3ft)
 for SLR_value in SLR_values:
     process_inundation(SLR_value, DEM_1m, output_directory)
+
 arcpy.AddMessage(f"SLR inundation successfully forecasted. Outputs stored in {output_directory}.")
 
 # ### Appendix A: Steps to build a higher resolution tidal surface using VDatum Tool & ArcGIS Pro
