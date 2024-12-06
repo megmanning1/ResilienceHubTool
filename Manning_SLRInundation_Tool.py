@@ -183,7 +183,7 @@ tidal_raster_sa = ARCPY_Raster(tidal_raster_path)
 
 # Project this into WKID 6347 - same as DEM layer
 tidal_projected_output = os.path.join(output_directory, "tidal_raster_NAD83.tif")
-UTM_NAD83 = arcpy.SpatialReference(6318)
+UTM_NAD83 = arcpy.SpatialReference(6347)
 
 # Project tidal raster to new crs
 arcpy.management.ProjectRaster(tidal_raster_sa,
